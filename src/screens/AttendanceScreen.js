@@ -190,11 +190,21 @@ export default function AttendanceScreen({ navigation }) {
   }, [navigation, fetchUnreadCount]);
 
   const doLogout = async () => {
-    await AsyncStorage.removeItem('auth_token');
-    await AsyncStorage.removeItem('user');
-    await AsyncStorage.removeItem('orgId');
-    await AsyncStorage.removeItem('orgData');
-    navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+    try {
+      const storedRefreshToken = await AsyncStorage.getItem('refresh_token');
+      if (storedRefreshToken) {
+        await api.post('/auth/logout-mobile', { refreshToken: storedRefreshToken });
+      }
+    } catch (e) {
+      console.log('Logout API failed:', e);
+    } finally {
+      await AsyncStorage.removeItem('auth_token');
+      await AsyncStorage.removeItem('refresh_token');
+      await AsyncStorage.removeItem('user');
+      await AsyncStorage.removeItem('orgId');
+      await AsyncStorage.removeItem('orgData');
+      navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+    }
   };
 
   const handleLogout = () => {
@@ -986,6 +996,28 @@ function AttendanceDetailCard({ item, getStatusStyle, onOpenLocation }) {
   const statusConfig = getStatusStyle(item.status);
   const initials = item.user?.name ? item.user.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() : '??';
 
+  const getFormattedCheckIn = () => {
+    if (!item.checkIn) return '--:--';
+    if (item.isRmo && item.punchedInAt) {
+      const punchInDate = dayjs(item.punchedInAt).format('YYYY-MM-DD');
+      if (punchInDate !== item.date) {
+        return `${item.checkIn} (${dayjs(item.punchedInAt).format('DD MMM')})`;
+      }
+    }
+    return item.checkIn;
+  };
+
+  const getFormattedCheckOut = () => {
+    if (!item.checkOut) return '--:--';
+    if (item.isRmo && item.punchedOutAt) {
+      const punchOutDate = dayjs(item.punchedOutAt).format('YYYY-MM-DD');
+      if (punchOutDate !== item.date) {
+        return `${item.checkOut} (${dayjs(item.punchedOutAt).format('DD MMM')})`;
+      }
+    }
+    return item.checkOut;
+  };
+
   return (
     <View style={styles.detailCard}>
       <View style={styles.cardHeaderRow}>
@@ -1067,7 +1099,7 @@ function AttendanceDetailCard({ item, getStatusStyle, onOpenLocation }) {
             <Ionicons name="log-in-outline" size={14} color="#16A34A" style={{ marginRight: 4 }} />
             <Text style={styles.punchLabel}>PUNCH IN</Text>
           </View>
-          <Text style={styles.punchTime}>{item.checkIn || '--:--'}</Text>
+          <Text style={styles.punchTime}>{getFormattedCheckIn()}</Text>
           {item.address ? (
             <Text style={styles.punchAddr} numberOfLines={1}>{item.address}</Text>
           ) : null}
@@ -1080,7 +1112,7 @@ function AttendanceDetailCard({ item, getStatusStyle, onOpenLocation }) {
             <Ionicons name="log-out-outline" size={14} color="#DC2626" style={{ marginRight: 4 }} />
             <Text style={styles.punchLabel}>PUNCH OUT</Text>
           </View>
-          <Text style={styles.punchTime}>{item.checkOut || '--:--'}</Text>
+          <Text style={styles.punchTime}>{getFormattedCheckOut()}</Text>
           {item.punchOutAddress ? (
             <Text style={styles.punchAddr} numberOfLines={1}>{item.punchOutAddress}</Text>
           ) : null}
@@ -1131,6 +1163,29 @@ function AttendanceDetailCard({ item, getStatusStyle, onOpenLocation }) {
 // Expandable Group Employee Row Component
 function AttendanceGroupRow({ item, getStatusStyle, onOpenLocation }) {
   const statusConfig = getStatusStyle(item.status);
+
+  const getGroupCheckIn = () => {
+    if (!item.checkIn) return '--:--';
+    if (item.isRmo && item.punchedInAt) {
+      const punchInDate = dayjs(item.punchedInAt).format('YYYY-MM-DD');
+      if (punchInDate !== item.date) {
+        return `${item.checkIn} (${dayjs(item.punchedInAt).format('DD MMM')})`;
+      }
+    }
+    return item.checkIn;
+  };
+
+  const getGroupCheckOut = () => {
+    if (!item.checkOut) return '--:--';
+    if (item.isRmo && item.punchedOutAt) {
+      const punchOutDate = dayjs(item.punchedOutAt).format('YYYY-MM-DD');
+      if (punchOutDate !== item.date) {
+        return `${item.checkOut} (${dayjs(item.punchedOutAt).format('DD MMM')})`;
+      }
+    }
+    return item.checkOut;
+  };
+
   return (
     <View style={styles.groupEmpRow}>
       <View style={{ flex: 1 }}>
@@ -1145,7 +1200,7 @@ function AttendanceGroupRow({ item, getStatusStyle, onOpenLocation }) {
         <View style={styles.groupEmpMeta}>
           <Ionicons name="calendar-outline" size={11} color="#9CA3AF" style={{ marginRight: 4 }} />
           <Text style={styles.groupEmpTime}>
-            {dayjs(item.date).format('DD MMM')}  •  In: {item.checkIn || '--:--'}  •  Out: {item.checkOut || '--:--'}
+            {dayjs(item.date).format('DD MMM')}  •  In: {getGroupCheckIn()}  •  Out: {getGroupCheckOut()}
           </Text>
         </View>
       </View>

@@ -31,6 +31,18 @@
     },
     "web": {
       "bundler": "metro"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "9dbd9a81-b8e6-4819-b8be-5c2914fa81e5"
+      }
+    },
+    "owner": "asitman123",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/9dbd9a81-b8e6-4819-b8be-5c2914fa81e5"
     }
   }
 }

@@ -12,7 +12,6 @@ const api = axios.create({
   timeout: 30000,
 });
 
-// Request interceptor to add token
 api.interceptors.request.use(
   async (config) => {
     const token = await AsyncStorage.getItem('auth_token');
@@ -24,6 +23,20 @@ api.interceptors.request.use(
     if (orgId) {
       config.headers['X-Org-Id'] = orgId;
     }
+
+    // Zero Trust device fingerprint generation and injection
+    let deviceFingerprint = await AsyncStorage.getItem('device_fingerprint');
+    if (!deviceFingerprint) {
+      const chars = 'abcdef0123456789';
+      let hex = '';
+      for (let i = 0; i < 32; i++) {
+        hex += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      deviceFingerprint = hex;
+      await AsyncStorage.setItem('device_fingerprint', deviceFingerprint);
+    }
+    config.headers['x-device-fingerprint'] = deviceFingerprint;
+
     config.headers['X-App-Platform'] = 'admin-apk';
     config.headers['Content-Type'] = 'application/json';
     config.headers['Accept'] = 'application/json';
@@ -32,13 +45,82 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response interceptor - do NOT clear token on 401
-// Clearing token on 401 causes logout when any API fails
-// Token should only be cleared on explicit logout
+// Background refresh queue handling
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
+// Response interceptor - handle automatic transparent token refresh on 401
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     console.log('[API] Error:', error.response?.status, error.config?.url);
+    const originalRequest = error.config;
+
+    // Trigger refresh only on 401 Unauthorized errors and if it's not a retry already
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      // If the refresh endpoint itself failed, clear credentials
+      if (originalRequest.url && originalRequest.url.includes('/auth/refresh-mobile')) {
+        await AsyncStorage.removeItem('auth_token');
+        await AsyncStorage.removeItem('refresh_token');
+        await AsyncStorage.removeItem('user');
+        return Promise.reject(error);
+      }
+
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            return api(originalRequest);
+          })
+          .catch((err) => Promise.reject(err));
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      try {
+        const storedRefreshToken = await AsyncStorage.getItem('refresh_token');
+        if (!storedRefreshToken) {
+          throw new Error('Refresh token missing');
+        }
+
+        // Call mobile refresh endpoint
+        const resp = await axios.post(`${API_BASE_URL}/auth/refresh-mobile`, {
+          refreshToken: storedRefreshToken
+        });
+
+        const { token, refreshToken } = resp.data;
+
+        await AsyncStorage.setItem('auth_token', String(token));
+        await AsyncStorage.setItem('refresh_token', String(refreshToken));
+
+        originalRequest.headers.Authorization = `Bearer ${token}`;
+
+        processQueue(null, token);
+        return api(originalRequest);
+      } catch (refreshError) {
+        processQueue(refreshError, null);
+        await AsyncStorage.removeItem('auth_token');
+        await AsyncStorage.removeItem('refresh_token');
+        await AsyncStorage.removeItem('user');
+        return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
+      }
+    }
     return Promise.reject(error);
   }
 );
@@ -56,11 +138,32 @@ export async function getLatestOtpForPhone(phone) {
   return resp.data;
 }
 
-export async function verifyOtp(phone, code, orgId) {
-  const resp = await api.post('/auth/verify-otp', { phone, code, orgId });
+export async function verifyOtp(phone, code, orgId, isSuperadminPanel) {
+  const resp = await api.post('/auth/verify-otp', { phone, code, orgId, isSuperadminPanel });
   const data = resp.data;
   if (data?.success && data?.token) {
     await AsyncStorage.setItem('auth_token', String(data.token));
+    if (data?.refreshToken) {
+      await AsyncStorage.setItem('refresh_token', String(data.refreshToken));
+    }
+    if (data?.user) {
+      await AsyncStorage.setItem('user', JSON.stringify(data.user));
+    }
+  }
+  return data;
+}
+
+export async function switchAccount(orgId, isSuperadminPanel) {
+  const resp = await api.post('/auth/switch-account', {
+    orgId: orgId === null ? 'null' : orgId,
+    isSuperadminPanel: !!isSuperadminPanel,
+  });
+  const data = resp.data;
+  if (data?.success && data?.token) {
+    await AsyncStorage.setItem('auth_token', String(data.token));
+    if (data?.refreshToken) {
+      await AsyncStorage.setItem('refresh_token', String(data.refreshToken));
+    }
     if (data?.user) {
       await AsyncStorage.setItem('user', JSON.stringify(data.user));
     }

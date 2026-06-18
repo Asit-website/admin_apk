@@ -10,7 +10,7 @@ import {
   Image,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { verifyOtp } from '../config/api';
+import { verifyOtp, switchAccount } from '../config/api';
 import { Ionicons } from '@expo/vector-icons';
 
 const ADMIN_ROLES = ['admin', 'superadmin', 'channel_partner'];
@@ -42,7 +42,17 @@ export default function SelectOrgScreen({ route, navigation }) {
     }
     setLoadingId(org.id);
     try {
-      const res = await verifyOtp(phone, code, org.id === null ? 'null' : org.id);
+      // Prefer switch-account if token already exists (avoids re-using consumed OTP)
+      const existingToken = await AsyncStorage.getItem('auth_token');
+      let res;
+      if (existingToken) {
+        res = await switchAccount(org.id, org.isSuperadminPanel);
+      } else if (code) {
+        res = await verifyOtp(phone, code, org.id === null ? 'null' : org.id, org.isSuperadminPanel);
+      } else {
+        throw new Error('No active session. Please login again.');
+      }
+
       if (res?.success) {
         if (!isAdminRole(res?.user?.role)) {
           await AsyncStorage.removeItem('auth_token');
@@ -69,7 +79,7 @@ export default function SelectOrgScreen({ route, navigation }) {
         }
       }
     } catch (err) {
-      const msg = err.response?.data?.message || 'Unable to select organization. Please try again.';
+      const msg = err.response?.data?.message || err.message || 'Unable to select organization. Please try again.';
       if (Platform.OS === 'web') {
         window.alert(msg);
       } else {

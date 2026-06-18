@@ -89,11 +89,21 @@ export default function ProfileScreen({ navigation }) {
   }, [navigation]);
 
   const doLogout = async () => {
-    await AsyncStorage.removeItem('auth_token');
-    await AsyncStorage.removeItem('user');
-    await AsyncStorage.removeItem('orgId');
-    await AsyncStorage.removeItem('orgData');
-    navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+    try {
+      const storedRefreshToken = await AsyncStorage.getItem('refresh_token');
+      if (storedRefreshToken) {
+        await api.post('/auth/logout-mobile', { refreshToken: storedRefreshToken });
+      }
+    } catch (e) {
+      console.log('Logout API failed:', e);
+    } finally {
+      await AsyncStorage.removeItem('auth_token');
+      await AsyncStorage.removeItem('refresh_token');
+      await AsyncStorage.removeItem('user');
+      await AsyncStorage.removeItem('orgId');
+      await AsyncStorage.removeItem('orgData');
+      navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+    }
   };
 
   const handleLogout = () => {
