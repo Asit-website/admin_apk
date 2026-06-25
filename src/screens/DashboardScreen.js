@@ -246,6 +246,24 @@ export default function DashboardScreen({ navigation }) {
           </View>
         </View>
 
+        {/* Wishes Card */}
+        <TouchableOpacity 
+          style={styles.wishesCard}
+          onPress={() => navigation.navigate('Wishes')}
+          activeOpacity={0.9}
+        >
+          <View style={styles.wishesCardLeft}>
+            <View style={styles.wishesIconWrap}>
+              <Ionicons name="gift" size={22} color="#EF4444" />
+            </View>
+            <View>
+              <Text style={styles.wishesCardTitle}>Staff Milestones & Wishes</Text>
+              <Text style={styles.wishesCardSub}>View birthdays & work anniversaries</Text>
+            </View>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
+        </TouchableOpacity>
+
         {/* Staff Metrics Row */}
         <View style={styles.cardsRow}>
           <KpiCardSmall
@@ -497,4 +515,31 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 0 
   },
   barLabel: { fontFamily: 'Inter_500Medium', fontSize: 10, color: '#94A3B8', marginTop: 6 },
+  wishesCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#EAEFF8',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 4,
+  },
+  wishesCardLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  wishesIconWrap: {
+    width: 42,
+    height: 42,
+    borderRadius: 12,
+    backgroundColor: '#FEF2F2',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  wishesCardTitle: { fontFamily: 'Inter_700Bold', fontSize: 14, color: '#1E293B' },
+  wishesCardSub: { fontFamily: 'Inter_400Regular', fontSize: 11, color: '#6B7280', marginTop: 2 },
 });

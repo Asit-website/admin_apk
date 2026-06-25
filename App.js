@@ -15,6 +15,7 @@ import LeaveScreen from './src/screens/LeaveScreen';
 import NotificationScreen from './src/screens/NotificationScreen';
 import ReportsScreen from './src/screens/ReportsScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
+import WishesScreen from './src/screens/WishesScreen';
 import ToastHost from './src/components/ToastHost';
 import AndroidNotification from './src/components/AndroidNotification';
 import { setNotificationRef } from './src/utils/notify';
@@ -87,6 +88,7 @@ export default function App() {
             <Stack.Screen name="Notification" component={NotificationScreen} options={{ headerShown: false }} />
             <Stack.Screen name="Reports" component={ReportsScreen} options={{ headerShown: false }} />
             <Stack.Screen name="Profile" component={ProfileScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="Wishes" component={WishesScreen} options={{ headerShown: false }} />
           </Stack.Navigator>
         </NavigationContainer>
       </SafeAreaView>
