@@ -34,7 +34,7 @@
     },
     "extra": {
       "eas": {
-        "projectId": "9dbd9a81-b8e6-4819-b8be-5c2914fa81e5"
+        "projectId": "e6a27490-2ad3-4737-bb5d-0ba7c7de686a"
       }
     },
     "owner": "asitman123",
@@ -42,7 +42,7 @@
       "policy": "appVersion"
     },
     "updates": {
-      "url": "https://u.expo.dev/9dbd9a81-b8e6-4819-b8be-5c2914fa81e5"
+      "url": "https://u.expo.dev/e6a27490-2ad3-4737-bb5d-0ba7c7de686a"
     }
   }
 }

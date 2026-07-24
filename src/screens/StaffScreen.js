@@ -1148,10 +1148,21 @@ const StaffScreen = ({ navigation }) => {
                       })()
                     } 
                   />
-                  <ProfileDetailRow icon="lock-open-outline" label="Salary Access" value={(selectedStaff?.profile?.allowCurrentCycleSalaryAccess || selectedStaff?.allowCurrentCycleSalaryAccess) ? 'Allow current cycle' : 'Restricted'} />
-                  <ProfileDetailRow icon="options-outline" label="Attendance Setting Template" value={selectedStaff?.attendanceTemplate?.name || selectedStaff?.profile?.attendanceSettingTemplate || selectedStaff?.attendanceSettingTemplate || 'Not set'} />
-                  <ProfileDetailRow icon="options-outline" label="Effective Template" value={selectedStaff?.profile?.effectiveTemplate || 'Not set'} />
-                  <ProfileDetailRow icon="eye-outline" label="Attendance Mode" value={selectedStaff?.profile?.attendanceMode || 'Not set'} />
+                  {/* <ProfileDetailRow icon="lock-open-outline" label="Salary Access" value={(selectedStaff?.profile?.allowCurrentCycleSalaryAccess || selectedStaff?.allowCurrentCycleSalaryAccess) ? 'Allow current cycle' : 'Restricted'} />
+                  <ProfileDetailRow icon="options-outline" label="Attendance Setting Template" value={selectedStaff?.attendanceTemplate?.name || selectedStaff?.profile?.attendanceSettingTemplate || selectedStaff?.attendanceSettingTemplate || 'Not set'} /> */}
+                  {/* <ProfileDetailRow icon="options-outline" label="Effective Template" value={selectedStaff?.profile?.effectiveTemplate || 'Not set'} />
+                  <ProfileDetailRow icon="eye-outline" label="Attendance Mode" value={selectedStaff?.profile?.attendanceMode || 'Not set'} /> */}
+                  <ProfileDetailRow 
+                    icon="wallet-outline" 
+                    label="Salary Template" 
+                    value={
+                      (() => {
+                        const staffTplId = selectedStaff?.profile?.salaryTemplateId || selectedStaff?.salaryTemplateId;
+                        const tpl = salaryTemplates.find(t => t.id === staffTplId);
+                        return tpl?.name || 'No Template';
+                      })()
+                    } 
+                  />
 
                   <Text style={[styles.sectionSubtitle, { marginTop: 14 }]}>Personal Information</Text>
                   <ProfileDetailRow icon="mail-outline" label="Email" value={selectedStaff?.profile?.email || selectedStaff?.email || 'Not set'} />

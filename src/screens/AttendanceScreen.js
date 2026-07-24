@@ -1054,9 +1054,14 @@ function AttendanceDetailCard({ item, getStatusStyle, onOpenLocation }) {
               ({item.overtimeMinutes} min OT)
             </Text>
           ) : null}
+        </View>
+      </View>
 
+      {/* Render wide details/tags under the header row so they don't squeeze the name */}
+      {((item.isLate && item.latePenaltyText) || (!item.latePenaltyText && item.latePunchInMinutes > 0) || (item.earlyExitMinutes > 0) || (item.earlyOvertimeMinutes > 0)) ? (
+        <View style={{ marginTop: 6, gap: 4, paddingLeft: 52 }}>
           {item.isLate && item.latePenaltyText ? (
-            <View style={styles.lateTag}>
+            <View style={[styles.lateTag, { alignSelf: 'flex-start', marginTop: 0 }]}>
               <Text style={styles.lateTagText}>
                 Late: {item.latePenaltyText}
                 {item.bufferMinutes > 0 && ` (${item.bufferMinutes}m buffer applied)`}
@@ -1065,7 +1070,7 @@ function AttendanceDetailCard({ item, getStatusStyle, onOpenLocation }) {
           ) : null}
 
           {!item.latePenaltyText && item.latePunchInMinutes > 0 ? (
-            <View style={styles.lateTag}>
+            <View style={[styles.lateTag, { alignSelf: 'flex-start', marginTop: 0 }]}>
               <Text style={styles.lateTagText}>
                 Late by {item.latePunchInMinutes} min
                 {item.bufferMinutes > 0 && ` (${item.bufferMinutes}m buffer applied)`}
@@ -1074,7 +1079,7 @@ function AttendanceDetailCard({ item, getStatusStyle, onOpenLocation }) {
           ) : null}
 
           {item.earlyExitMinutes > 0 ? (
-            <View style={styles.earlyExitTag}>
+            <View style={[styles.earlyExitTag, { alignSelf: 'flex-start', marginTop: 0 }]}>
               <Text style={styles.earlyExitTagText}>
                 Early Exit: {item.earlyExitMinutes} min
               </Text>
@@ -1082,14 +1087,14 @@ function AttendanceDetailCard({ item, getStatusStyle, onOpenLocation }) {
           ) : null}
 
           {item.earlyOvertimeMinutes > 0 ? (
-            <View style={styles.earlyOtTag}>
+            <View style={[styles.earlyOtTag, { alignSelf: 'flex-start', marginTop: 0 }]}>
               <Text style={styles.earlyOtTagText}>
                 Early OT: {item.earlyOvertimeMinutes} min
               </Text>
             </View>
           ) : null}
         </View>
-      </View>
+      ) : null}
 
       <View style={styles.divider} />
 
