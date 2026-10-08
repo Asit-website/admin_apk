@@ -34,15 +34,15 @@
     },
     "extra": {
       "eas": {
-        "projectId": "e6a27490-2ad3-4737-bb5d-0ba7c7de686a"
+        "projectId": "f6814983-801d-4864-bd27-289b103088fd"
       }
     },
-    "owner": "asitman123",
+    "owner": "asitda",
     "runtimeVersion": {
       "policy": "appVersion"
     },
     "updates": {
-      "url": "https://u.expo.dev/e6a27490-2ad3-4737-bb5d-0ba7c7de686a"
+      "url": "https://u.expo.dev/f6814983-801d-4864-bd27-289b103088fd"
     }
   }
 }
