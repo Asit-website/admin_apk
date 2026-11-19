@@ -27,9 +27,7 @@ export default function LoginScreen({ navigation }) {
     try {
       const res = await sendOtp(sanitized);
       if (res?.success) {
-        if (res?.otp) {
-          Alert.alert('OTP', String(res.otp));
-        }
+
         navigation.navigate('OTP', { phone: sanitized, otp: res?.otp ? String(res.otp) : undefined });
       } else {
         Alert.alert(res?.message || 'Failed to send OTP');

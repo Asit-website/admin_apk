@@ -224,11 +224,7 @@ export default function OTPScreen({ route, navigation }) {
     setResendLoading(true);
     try {
       const res = await sendOtp(phone);
-      if (res?.otp) {
-        Alert.alert('OTP', String(res.otp));
-      } else {
-        notifySuccess('OTP has been sent successfully.');
-      }
+      notifySuccess('OTP has been sent successfully.');
     } catch (e) {
       notifyError('Unable to resend OTP. Please try again.');
     } finally {
